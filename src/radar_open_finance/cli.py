@@ -56,8 +56,15 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--db", default="data/radar.duckdb")
     b.add_argument("--limite", type=int, default=10)
     b.add_argument("--produto", choices=list(PRODUTOS), default="emprestimos")
+    m = sub.add_parser("mcp", help="servidor MCP (stdio), só leitura no DuckDB")
+    m.add_argument("--db", default="data/radar.duckdb")
     args = ap.parse_args(argv)
 
+    if args.cmd == "mcp":
+        from . import mcp_server
+
+        mcp_server.servir(args.db)
+        return 0
     if args.cmd == "coletar":
         r = coletar(args.db, produtos=args.produto)
         for nome, p in r["por_produto"].items():

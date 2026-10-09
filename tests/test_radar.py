@@ -219,6 +219,75 @@ def test_buscador_manda_user_agent(monkeypatch):
     assert "User-agent" in enviados
 
 
+def banco_com_dados(tmp_path):
+    db = str(tmp_path / "m.duckdb")
+    con = banco.abrir(db)
+    banco.salvar_emprestimos(
+        con, normaliza.normalizar_emprestimo(produto("Banco Alfa", "EMPRESTIMO_SEM_CONSIGNACAO", "0", "0.05"), "u", "2026-10-09")
+    )
+    banco.salvar_contas(con, normaliza.normalizar_conta(conta("Banco Alfa", CESTA_BARATA), "u", "2026-10-09"))
+    banco.salvar_cartoes(con, normaliza.normalizar_cartao(cartao("Banco Beta", "0.08", "10.00"), "u", "2026-10-09"))
+    con.close()
+    return db
+
+
+def conversar(db, mensagens):
+    import io
+    import json
+
+    from radar_open_finance import mcp_server
+
+    entrada = io.StringIO("\n".join(json.dumps(m) for m in mensagens) + "\n")
+    saida = io.StringIO()
+    mcp_server.servir(db, entrada, saida)
+    return [json.loads(linha) for linha in saida.getvalue().splitlines()]
+
+
+def chamada(id_, ferramenta, **args):
+    return {"jsonrpc": "2.0", "id": id_, "method": "tools/call", "params": {"name": ferramenta, "arguments": args}}
+
+
+def test_mcp_lista_ferramentas_e_ignora_notificacao(tmp_path):
+    respostas = conversar(
+        banco_com_dados(tmp_path),
+        [
+            {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}},
+            {"jsonrpc": "2.0", "method": "notifications/initialized"},
+            {"jsonrpc": "2.0", "id": 2, "method": "tools/list"},
+        ],
+    )
+    assert len(respostas) == 2
+    assert respostas[0]["result"]["serverInfo"]["name"] == "radar-open-finance"
+    assert {t["name"] for t in respostas[1]["result"]["tools"]} >= {"ranking_emprestimos", "buscar_banco"}
+
+
+def test_mcp_rankings_e_busca_por_banco(tmp_path):
+    import json
+
+    r = conversar(
+        banco_com_dados(tmp_path),
+        [chamada(1, "ranking_emprestimos"), chamada(2, "ranking_cartoes", limite=1), chamada(3, "buscar_banco", nome="ALFA")],
+    )
+    assert json.loads(r[0]["result"]["content"][0]["text"])[0]["taxa_max_mes"] == 0.05
+    assert json.loads(r[1]["result"]["content"][0]["text"])[0]["banco"] == "Banco Beta"
+    achados = json.loads(r[2]["result"]["content"][0]["text"])
+    assert len(achados["emprestimos"]) == 1 and len(achados["contas"]) == 1 and achados["cartoes"] == []
+
+
+def test_mcp_erros_de_uso_e_somente_leitura(tmp_path):
+    db = banco_com_dados(tmp_path)
+    r = conversar(db, [chamada(1, "buscar_banco", nome="a"), chamada(2, "nao_existe"), {"jsonrpc": "2.0", "id": 3, "method": "x"}])
+    assert r[0]["result"]["isError"] is True
+    assert r[1]["error"]["code"] == -32602
+    assert r[2]["error"]["code"] == -32601
+    import duckdb
+    import pytest
+
+    con = duckdb.connect(db, read_only=True)
+    with pytest.raises(duckdb.Error):
+        con.execute("DELETE FROM emprestimos")
+
+
 def test_recoleta_no_mesmo_dia_nao_duplica(tmp_path):
     con = banco.abrir(str(tmp_path / "t.duckdb"))
     linhas = normaliza.normalizar_emprestimo(produto("A", "T", "0", "0.05"), "u", "2026-10-09")

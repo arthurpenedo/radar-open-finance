@@ -2,7 +2,7 @@
 
 Coleta os dados abertos de produtos do Open Finance Brasil (empréstimo pessoal, contas e cartões) e normaliza num DuckDB.
 
-> **Status: parte 2 de 3.** Coleta de três produtos e rankings separados por tipo. Faltam servidor MCP e GitHub Actions semanal.
+> **Status: parte 3 de 3.** Coleta de três produtos, rankings por tipo, servidor MCP e coleta semanal no GitHub Actions.
 
 ## O problema
 As taxas e tarifas dos bancos estão públicas no Open Finance, mas espalhadas em APIs de dezenas de instituições. Ninguém compara isso de forma simples.
@@ -36,6 +36,20 @@ radar-open-finance baratos --produto contas
 radar-open-finance baratos --produto cartoes
 pytest
 ```
+
+## Servidor MCP
+`radar-open-finance mcp --db data/radar.duckdb` sobe um servidor MCP por stdio, **só leitura** (o DuckDB abre em `read_only`). Sem dependência extra: o protocolo mínimo (`initialize`, `tools/list`, `tools/call`) está em `mcp_server.py`. Ferramentas:
+- `ranking_emprestimos`, `ranking_contas`, `ranking_cartoes` (parâmetro `limite`, 1 a 50);
+- `buscar_banco` (`nome`, busca parcial): o que a coleta mais recente tem daquele banco nas três tabelas.
+
+Exemplo de configuração num cliente MCP (rode `coletar` antes):
+```json
+{ "mcpServers": { "radar": { "command": "radar-open-finance", "args": ["mcp", "--db", "data/radar.duckdb"] } } }
+```
+Testado com mensagens JSON-RPC simuladas nos testes; não testei contra um cliente MCP real.
+
+## Coleta semanal
+`.github/workflows/coleta-semanal.yml` roda toda segunda (e sob demanda): testes, coleta, rankings no resumo do job e o `radar.duckdb` como artefato por 90 dias. Não grava nada no repositório.
 
 ## Como cada ranking é calculado
 - **Empréstimos:** menor taxa máxima mensal por banco e tipo, sem consignado.

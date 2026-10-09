@@ -1,0 +1,35 @@
+name: coleta-semanal
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # segundas, 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  coletar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .[dev]
+      - run: pytest
+      - name: Coletar
+        run: radar-open-finance coletar
+      - name: Rankings no resumo do job
+        run: |
+          {
+            echo "## Empréstimos"; radar-open-finance baratos --produto emprestimos --limite 5
+            echo "## Contas"; radar-open-finance baratos --produto contas --limite 5
+            echo "## Cartões"; radar-open-finance baratos --produto cartoes --limite 5
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Guardar o banco como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: radar-duckdb
+          path: data/radar.duckdb
+          retention-days: 90
