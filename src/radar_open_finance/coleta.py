@@ -5,18 +5,22 @@ from __future__ import annotations
 import json
 import urllib.request
 from collections.abc import Callable
-from urllib.parse import urljoin
+from urllib.parse import quote, urljoin
 
 DIRETORIO_URL = "https://data.directory.openbankingbrasil.org.br/participants"
 FAMILIA_EMPRESTIMO_PESSOAL = "opendata-loans_personal-loans"
+FAMILIA_CONTAS = "opendata-accounts_personal-accounts"
+FAMILIA_CARTOES = "opendata-creditcards_personal-credit-cards"
 MAX_PAGINAS = 50
+# Medido em 09/10/2026: BMG, Carrefour (Atacadão, Sam's) e PicPay só respondem com User-Agent.
+USER_AGENT = "Mozilla/5.0 (compatible; radar-open-finance)"
 
 Buscador = Callable[[str], dict | list]
 
 
 def buscar_json(url: str, timeout: int = 60) -> dict | list:
     """GET simples, sem autenticação (os dados abertos são públicos)."""
-    req = urllib.request.Request(url, headers={"Accept": "application/json"})
+    req = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": USER_AGENT})
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return json.loads(resp.read().decode("utf-8", errors="replace"))
 
@@ -48,5 +52,6 @@ def baixar_paginas(url: str, buscar: Buscador = buscar_json) -> list[dict]:
             raise ValueError(f"resposta inesperada de {atual}")
         itens.extend(resposta.get("data", []))
         proxima = (resposta.get("links") or {}).get("next")
-        atual = urljoin(atual, proxima) if proxima else None
+        # O Santander devolve `next` com espaço (brand=Banco Santander): sem escapar, urllib recusa.
+        atual = quote(urljoin(atual, proxima), safe=":/?&=%#") if proxima else None
     return itens
