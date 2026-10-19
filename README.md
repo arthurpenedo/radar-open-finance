@@ -1,5 +1,7 @@
 # radar-open-finance
 
+[![CI](https://github.com/arthurpenedo/radar-open-finance/actions/workflows/ci.yml/badge.svg)](https://github.com/arthurpenedo/radar-open-finance/actions/workflows/ci.yml)
+
 Coleta os dados abertos de produtos do Open Finance Brasil (empréstimo pessoal, contas e cartões) e normaliza num DuckDB.
 
 > **Status: parte 3 de 3.** Coleta de três produtos, rankings por tipo, servidor MCP e coleta semanal no GitHub Actions.
