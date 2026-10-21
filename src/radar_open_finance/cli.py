@@ -58,7 +58,17 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--produto", choices=list(PRODUTOS), default="emprestimos")
     m = sub.add_parser("mcp", help="servidor MCP (stdio), só leitura no DuckDB")
     m.add_argument("--db", default="data/radar.duckdb")
+    p = sub.add_parser("pagina", help="gera a página HTML estática com os três rankings")
+    p.add_argument("--db", default="data/radar.duckdb")
+    p.add_argument("--saida", default="site/index.html")
+    p.add_argument("--limite", type=int, default=10)
     args = ap.parse_args(argv)
+
+    if args.cmd == "pagina":
+        from . import pagina
+
+        print(pagina.gravar(args.db, args.saida, args.limite))
+        return 0
 
     if args.cmd == "mcp":
         from . import mcp_server

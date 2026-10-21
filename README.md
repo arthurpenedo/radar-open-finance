@@ -53,6 +53,9 @@ Testado com mensagens JSON-RPC simuladas nos testes; não testei contra um clien
 ## Coleta semanal
 `.github/workflows/coleta-semanal.yml` roda toda segunda (e sob demanda): testes, coleta, rankings no resumo do job e o `radar.duckdb` como artefato por 90 dias. Não grava nada no repositório.
 
+## Página de demo
+`radar-open-finance pagina --saida site/index.html` gera uma página HTML estática com os três rankings da coleta mais recente (sem JavaScript, valores escapados). O workflow `.github/workflows/pagina.yml` coleta, gera e publica no GitHub Pages toda segunda e sob demanda. Para ativar uma vez: Settings → Pages → Source = GitHub Actions. Link: https://arthurpenedo.github.io/radar-open-finance/ (vale depois da primeira execução do workflow).
+
 ## Como cada ranking é calculado
 - **Empréstimos:** menor taxa máxima mensal por banco e tipo, sem consignado.
 - **Contas:** soma das tarifas máximas de uma cesta de 4 serviços (saque em terminal, TED pela internet, extrato mensal, transferência entre contas). Só entram contas que publicam as quatro tarifas.
