@@ -13,7 +13,7 @@ authors = [{ name = "Arthur Penedo" }]
 dependencies = ["duckdb>=1.0"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+dev = ["pytest>=8", "ruff>=0.6"]
 
 [project.scripts]
 radar-open-finance = "radar_open_finance.cli:main"

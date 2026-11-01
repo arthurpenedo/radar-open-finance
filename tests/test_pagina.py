@@ -1,6 +1,6 @@
-from radar_open_finance import banco, cli, normaliza, pagina
-
 from test_radar import CESTA_BARATA, cartao, conta, produto
+
+from radar_open_finance import banco, cli, normaliza, pagina
 
 
 def _db(tmp_path):

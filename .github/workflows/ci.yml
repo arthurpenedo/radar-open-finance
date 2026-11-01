@@ -16,5 +16,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install -e ".[dev]" || pip install -e . pytest
+      - run: pip install -e ".[dev]" || pip install -e . pytest ruff
+      - run: ruff check . --select E,F,I --ignore E501
       - run: pytest -q
