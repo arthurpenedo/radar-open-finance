@@ -35,7 +35,7 @@ def normalizar_conta(item: dict, fonte: str, coletado_em: str) -> list[dict]:
         "fonte_url": fonte,
         "coletado_em": coletado_em,
     }
-    linha.update({coluna: None for coluna in TARIFAS_CONTA.values()})
+    linha.update(dict.fromkeys(TARIFAS_CONTA.values()))
     for servico in (item.get("fees") or {}).get("priorityServices") or []:
         coluna = TARIFAS_CONTA.get(servico.get("code"))
         if coluna and linha[coluna] is None:
