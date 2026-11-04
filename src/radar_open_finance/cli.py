@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import http.client
 import sys
 
 from . import banco, coleta, normaliza
@@ -30,7 +31,7 @@ def coletar(db: str, buscar: coleta.Buscador = coleta.buscar_json, produtos: lis
             for tentativa in (1, 2):  # leituras cortadas pela metade (Sicoob) costumam passar na 2ª
                 try:
                     itens = coleta.baixar_paginas(ep["url"], buscar)
-                except Exception as erro:  # um banco fora do ar não derruba a coleta
+                except (OSError, ValueError, http.client.HTTPException) as erro:  # um banco fora do ar não derruba a coleta
                     if tentativa == 2:
                         falhas.append(f"{nome} / {ep['organizacao']}: {erro}")
                     continue

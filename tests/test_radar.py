@@ -108,7 +108,7 @@ def test_coleta_completa_grava_e_tolera_falha(tmp_path):
                 produto("Banco A", "EMPRESTIMO_CONSIGNADO", "0.01", "0.02"),
             ]
         },
-        "https://b.test/personal-loans": RuntimeError("fora do ar"),
+        "https://b.test/personal-loans": ConnectionError("fora do ar"),
     }
     db = str(tmp_path / "t.duckdb")
     r = cli.coletar(db, falso_buscador(respostas))
