@@ -123,7 +123,7 @@ def responder(con: duckdb.DuckDBPyConnection, msg: dict) -> dict | None:
             dados = chamar(con, params.get("name", ""), params.get("arguments") or {})
         except KeyError:
             return erro(-32602, f"ferramenta desconhecida: {params.get('name')}")
-        except Exception as e:  # erro de uso volta como resultado, para o modelo poder corrigir
+        except (ValueError, TypeError, duckdb.Error) as e:  # erro de uso volta como resultado, para o modelo poder corrigir
             return ok({"content": [{"type": "text", "text": f"erro: {e}"}], "isError": True})
         texto = json.dumps(dados, ensure_ascii=False)
         return ok({"content": [{"type": "text", "text": texto}], "isError": False})
