@@ -66,8 +66,8 @@ def gerar_html(con: duckdb.DuckDBPyConnection, limite: int = 10) -> str:
         "<meta name='viewport' content='width=device-width,initial-scale=1'>",
         f"<title>radar-open-finance</title><style>{CSS}</style></head><body>",
         "<h1>radar-open-finance</h1>",
-        f"<p>Os produtos mais baratos declarados no Open Finance Brasil. Coleta de <b>{escape(_data_da_coleta(con))}</b>. "
-        "<a href='https://github.com/arthurpenedo/radar-open-finance'>Código no GitHub</a>.</p>",
+        (f"<p>Os produtos mais baratos declarados no Open Finance Brasil. Coleta de <b>{escape(_data_da_coleta(con))}</b>. "
+         "<a href='https://github.com/arthurpenedo/radar-open-finance'>Código no GitHub</a>.</p>"),
         _tabela(
             "Empréstimo pessoal",
             "Menor taxa máxima mensal por banco e tipo, sem consignado.",
@@ -86,8 +86,8 @@ def gerar_html(con: duckdb.DuckDBPyConnection, limite: int = 10) -> str:
             ["Banco", "Cartão", "Bandeira", "Juros rotativo", "Anuidade"],
             cartoes,
         ),
-        "<p><small>Valores máximos declarados pelos bancos, não o que um cliente recebe. "
-        "Fonte: APIs públicas listadas pelo diretório do Open Finance Brasil.</small></p>",
+        ("<p><small>Valores máximos declarados pelos bancos, não o que um cliente recebe. "
+         "Fonte: APIs públicas listadas pelo diretório do Open Finance Brasil.</small></p>"),
         "</body></html>",
     ]
     return "".join(partes)
