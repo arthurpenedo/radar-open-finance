@@ -294,3 +294,24 @@ def test_recoleta_no_mesmo_dia_nao_duplica(tmp_path):
     banco.salvar_emprestimos(con, linhas)
     banco.salvar_emprestimos(con, linhas)
     assert con.execute("SELECT COUNT(*) FROM emprestimos").fetchone()[0] == 1
+
+
+def test_cli_baratos_imprime_os_tres_rankings(tmp_path, capsys):
+    db = str(tmp_path / "r.duckdb")
+    con = banco.abrir(db)
+    con.execute("INSERT INTO emprestimos (banco, tipo, taxa_max_mes, coletado_em) VALUES ('Banco A', 'PESSOAL', 0.0250, '2026-11-07')")
+    con.execute(
+        "INSERT INTO contas (banco, tipo, tarifa_saque_terminal, tarifa_ted, tarifa_extrato, tarifa_transferencia, coletado_em) "
+        "VALUES ('Banco B', 'PF', 1.0, 2.0, 0.0, 0.5, '2026-11-07')"
+    )
+    con.execute(
+        "INSERT INTO cartoes (banco, nome, bandeira, anuidade_max, juros_rotativo_max_mes, coletado_em) "
+        "VALUES ('Banco C', 'Gold', 'VISA', NULL, 0.08, '2026-11-07')"
+    )
+    con.close()
+    assert cli.main(["baratos", "--db", db]) == 0
+    assert "2.50% a.m.  Banco A  (PESSOAL)" in capsys.readouterr().out
+    assert cli.main(["baratos", "--db", db, "--produto", "contas"]) == 0
+    assert "R$    3.50 na cesta  Banco B" in capsys.readouterr().out
+    assert cli.main(["baratos", "--db", db, "--produto", "cartoes"]) == 0
+    assert "Banco C - Gold VISA  (anuidade sem dado)" in capsys.readouterr().out
