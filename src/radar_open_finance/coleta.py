@@ -49,7 +49,8 @@ def baixar_paginas(url: str, buscar: Buscador = buscar_json) -> list[dict]:
         vistos.add(atual)
         resposta = buscar(atual)
         if not isinstance(resposta, dict):
-            raise ValueError(f"resposta inesperada de {atual}")
+            # ValueError de propósito: o cli já trata ValueError (JSON inválido) como "banco fora do ar"
+            raise ValueError(f"resposta inesperada de {atual}")  # noqa: TRY004
         itens.extend(resposta.get("data", []))
         proxima = (resposta.get("links") or {}).get("next")
         # O Santander devolve `next` com espaço (brand=Banco Santander): sem escapar, urllib recusa.

@@ -77,6 +77,13 @@ def test_baixa_paginas_seguindo_next_e_evita_laco():
     assert coleta.baixar_paginas("https://x.test/p", falso_buscador(respostas)) == [1, 2]
 
 
+def test_resposta_que_nao_e_objeto_levanta_valueerror():
+    import pytest
+
+    with pytest.raises(ValueError, match="resposta inesperada de https://x.test/p"):
+        coleta.baixar_paginas("https://x.test/p", falso_buscador({"https://x.test/p": [1, 2]}))
+
+
 def test_paginacao_escapa_espaco_no_link_next():
     respostas = {
         "https://x.test/p": {"data": [1], "links": {"next": "/p?page=2&brand=Banco Santander"}},
