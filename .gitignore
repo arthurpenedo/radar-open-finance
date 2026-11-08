@@ -11,3 +11,4 @@ build/
 *.duckdb.wal
 data/raw/
 .DS_Store
+.coverage
