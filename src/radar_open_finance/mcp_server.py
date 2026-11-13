@@ -69,7 +69,7 @@ def _buscar_banco(con: duckdb.DuckDBPyConnection, nome: str) -> dict:
             [padrao],
         )
         cols = [d[0] for d in cur.description]
-        saida[tabela] = [dict(zip(cols, linha)) for linha in cur.fetchall()]
+        saida[tabela] = [dict(zip(cols, linha, strict=True)) for linha in cur.fetchall()]
     return saida
 
 
