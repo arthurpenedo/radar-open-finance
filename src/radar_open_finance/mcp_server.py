@@ -120,8 +120,11 @@ def responder(con: duckdb.DuckDBPyConnection, msg: dict) -> dict | None:
         return ok({"tools": FERRAMENTAS})
     if metodo == "tools/call":
         params = msg.get("params") or {}
+        argumentos = params.get("arguments") if isinstance(params, dict) else None
+        if not isinstance(params, dict) or not isinstance(argumentos or {}, dict):
+            return erro(-32602, "params e arguments devem ser objetos")
         try:
-            dados = chamar(con, params.get("name", ""), params.get("arguments") or {})
+            dados = chamar(con, params.get("name", ""), argumentos or {})
         except KeyError:
             return erro(-32602, f"ferramenta desconhecida: {params.get('name')}")
         except (ValueError, TypeError, duckdb.Error) as e:  # erro de uso volta como resultado, para o modelo poder corrigir

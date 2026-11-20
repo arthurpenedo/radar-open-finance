@@ -308,6 +308,17 @@ def test_mcp_busca_trata_curingas_como_texto(tmp_path):
     assert json.loads(r[2]["result"]["content"][0]["text"])["emprestimos"]
 
 
+def test_mcp_params_malformados_nao_derrubam_o_servidor(tmp_path):
+    ruins = [
+        {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": ["x"]},
+        {"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "ranking_emprestimos", "arguments": [1]}},
+    ]
+    r = conversar(banco_com_dados(tmp_path), [*ruins, {"jsonrpc": "2.0", "id": 3, "method": "ping"}])
+    assert [x["id"] for x in r] == [1, 2, 3]
+    assert r[0]["error"]["code"] == -32602 and r[1]["error"]["code"] == -32602
+    assert r[2]["result"] == {}
+
+
 def test_recoleta_no_mesmo_dia_nao_duplica(tmp_path):
     con = banco.abrir(str(tmp_path / "t.duckdb"))
     linhas = normaliza.normalizar_emprestimo(produto("A", "T", "0", "0.05"), "u", "2026-10-09")
