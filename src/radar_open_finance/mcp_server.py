@@ -55,7 +55,8 @@ def _limite(args: dict) -> int:
 
 
 def _buscar_banco(con: duckdb.DuckDBPyConnection, nome: str) -> dict:
-    padrao = f"%{nome.lower()}%"
+    literal = nome.lower().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    padrao = f"%{literal}%"  # % e _ digitados pelo usuário valem como texto, não como curinga
     saida = {}
     consultas = {
         "emprestimos": "SELECT banco, tipo, taxa_min_mes, taxa_max_mes FROM emprestimos",
@@ -65,7 +66,7 @@ def _buscar_banco(con: duckdb.DuckDBPyConnection, nome: str) -> dict:
     for tabela, select in consultas.items():
         cur = con.execute(
             f"{select} WHERE coletado_em = (SELECT MAX(coletado_em) FROM {tabela}) "
-            "AND lower(banco) LIKE ? ORDER BY 1 LIMIT 100",
+            "AND lower(banco) LIKE ? ESCAPE '\\' ORDER BY 1 LIMIT 100",
             [padrao],
         )
         cols = [d[0] for d in cur.description]

@@ -295,6 +295,19 @@ def test_mcp_erros_de_uso_e_somente_leitura(tmp_path):
         con.execute("DELETE FROM emprestimos")
 
 
+def test_mcp_busca_trata_curingas_como_texto(tmp_path):
+    import json
+
+    r = conversar(
+        banco_com_dados(tmp_path),
+        [chamada(1, "buscar_banco", nome="%%"), chamada(2, "buscar_banco", nome="__"), chamada(3, "buscar_banco", nome="alfa")],
+    )
+    for resp in r[:2]:
+        achados = json.loads(resp["result"]["content"][0]["text"])
+        assert achados == {"emprestimos": [], "contas": [], "cartoes": []}
+    assert json.loads(r[2]["result"]["content"][0]["text"])["emprestimos"]
+
+
 def test_recoleta_no_mesmo_dia_nao_duplica(tmp_path):
     con = banco.abrir(str(tmp_path / "t.duckdb"))
     linhas = normaliza.normalizar_emprestimo(produto("A", "T", "0", "0.05"), "u", "2026-10-09")
