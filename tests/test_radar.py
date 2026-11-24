@@ -346,3 +346,11 @@ def test_cli_baratos_imprime_os_tres_rankings(tmp_path, capsys):
     assert "R$    3.50 na cesta  Banco B" in capsys.readouterr().out
     assert cli.main(["baratos", "--db", db, "--produto", "cartoes"]) == 0
     assert "Banco C - Gold VISA  (anuidade sem dado)" in capsys.readouterr().out
+
+
+def test_baratos_limite_zero_e_banco_inexistente_devolvem_2(tmp_path, capsys):
+    assert cli.main(["baratos", "--db", str(tmp_path / "x.duckdb"), "--limite", "0"]) == 2
+    assert "--limite" in capsys.readouterr().err
+    assert cli.main(["baratos", "--db", str(tmp_path / "nao.duckdb")]) == 2
+    assert "Banco não encontrado" in capsys.readouterr().err
+    assert not (tmp_path / "nao.duckdb").exists()

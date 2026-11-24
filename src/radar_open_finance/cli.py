@@ -6,6 +6,7 @@ import argparse
 import datetime as dt
 import http.client
 import sys
+from pathlib import Path
 
 from . import banco, coleta, normaliza
 
@@ -65,6 +66,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--limite", type=int, default=10)
     args = ap.parse_args(argv)
 
+    if getattr(args, "limite", 1) < 1:
+        print("--limite precisa ser 1 ou mais.", file=sys.stderr)
+        return 2
+
     if args.cmd == "pagina":
         from . import pagina
 
@@ -83,6 +88,9 @@ def main(argv: list[str] | None = None) -> int:
         for f in r["falhas"]:
             print("  falha:", f, file=sys.stderr)
         return 0
+    if not Path(args.db).is_file():
+        print(f"Banco não encontrado: {args.db}. Rode `radar-open-finance coletar` antes.", file=sys.stderr)
+        return 2
     con = banco.abrir(args.db)
     if args.produto == "emprestimos":
         for nome, tipo, taxa in banco.mais_baratos(con, args.limite):
