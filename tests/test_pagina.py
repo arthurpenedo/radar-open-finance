@@ -40,3 +40,8 @@ def test_comando_pagina_sem_banco_devolve_2_e_nao_cria_o_banco(tmp_path, capsys)
     assert cli.main(["pagina", "--db", str(ausente), "--saida", str(tmp_path / "p.html")]) == 2
     assert "Banco não encontrado" in capsys.readouterr().err
     assert not ausente.parent.exists()
+
+
+def test_comando_pagina_com_saida_em_pasta_devolve_2(tmp_path, capsys):
+    assert cli.main(["pagina", "--db", _db(tmp_path), "--saida", str(tmp_path)]) == 2
+    assert "pasta" in capsys.readouterr().err
