@@ -33,3 +33,10 @@ def test_comando_pagina_grava_o_arquivo(tmp_path):
     saida = tmp_path / "site" / "index.html"
     assert cli.main(["pagina", "--db", _db(tmp_path), "--saida", str(saida)]) == 0
     assert saida.read_text(encoding="utf-8").startswith("<!doctype html>")
+
+
+def test_comando_pagina_sem_banco_devolve_2_e_nao_cria_o_banco(tmp_path, capsys):
+    ausente = tmp_path / "novo" / "radar.duckdb"
+    assert cli.main(["pagina", "--db", str(ausente), "--saida", str(tmp_path / "p.html")]) == 2
+    assert "Banco não encontrado" in capsys.readouterr().err
+    assert not ausente.parent.exists()

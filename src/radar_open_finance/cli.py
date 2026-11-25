@@ -73,6 +73,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "pagina":
         from . import pagina
 
+        if not Path(args.db).is_file():
+            print(f"Banco não encontrado: {args.db}. Rode `radar-open-finance coletar` antes.", file=sys.stderr)
+            return 2
+
         print(pagina.gravar(args.db, args.saida, args.limite))
         return 0
 
